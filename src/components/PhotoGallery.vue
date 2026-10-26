@@ -7,6 +7,7 @@ defineProps<{ photos: Photo[] }>()
 // เก็บรูปที่โหลดไม่ได้ เพื่อแสดงกรอบ placeholder แทน
 const failed = reactive(new Set<string>())
 const tilts = ['-rotate-3', 'rotate-2', '-rotate-1', 'rotate-3', '-rotate-2', 'rotate-1']
+const isVideo = (src: string) => /\.(mp4|webm|ogg)(?:$|\?)/i.test(src)
 </script>
 
 <template>
@@ -23,11 +24,23 @@ const tilts = ['-rotate-3', 'rotate-2', '-rotate-1', 'rotate-3', '-rotate-2', 'r
       >
         <div class="aspect-square overflow-hidden bg-rose-50">
           <img
-            v-if="!failed.has(p.src)"
+            v-if="!isVideo(p.src) && !failed.has(p.src)"
             :src="p.src"
             :alt="p.caption ?? ''"
             loading="lazy"
             class="size-full object-cover"
+            @error="failed.add(p.src)"
+          />
+          <video
+            v-else-if="isVideo(p.src) && !failed.has(p.src)"
+            :src="p.src"
+            :aria-label="p.caption ?? 'Memory video'"
+            class="size-full object-cover"
+            autoplay
+            loop
+            muted
+            playsinline
+            controls
             @error="failed.add(p.src)"
           />
           <div v-else class="flex size-full flex-col items-center justify-center gap-1 p-2 text-center text-xs text-rose-300">

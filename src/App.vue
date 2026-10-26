@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { birthday } from './config/birthday'
 import EnvelopeLetter from './components/EnvelopeLetter.vue'
 import BirthdayCake from './components/BirthdayCake.vue'
@@ -17,11 +17,31 @@ const audio = ref<HTMLAudioElement | null>(null)
 const wishAnchor = ref<HTMLElement | null>(null)
 
 function playMusic() {
-  audio.value?.play().catch(() => {})
+  const player = audio.value
+  if (!player) return
+
+  player.play().catch(() => {
+    // เบราว์เซอร์อาจบล็อก autoplay จนกว่าจะมีการแตะหรือคลิกหน้าเว็บ
+  })
+}
+
+function startMusicAfterInteraction() {
+  playMusic()
+  document.removeEventListener('pointerdown', startMusicAfterInteraction)
+  document.removeEventListener('keydown', startMusicAfterInteraction)
 }
 
 onMounted(() => {
+  // พยายามเล่นทันทีเมื่อโหลดหน้าเว็บ
   playMusic()
+  // สำรองกรณีเบราว์เซอร์บล็อก autoplay ที่มีเสียง
+  document.addEventListener('pointerdown', startMusicAfterInteraction, { once: true })
+  document.addEventListener('keydown', startMusicAfterInteraction, { once: true })
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', startMusicAfterInteraction)
+  document.removeEventListener('keydown', startMusicAfterInteraction)
 })
 
 function onBlown() {
@@ -35,7 +55,7 @@ function onBlown() {
 
 <template>
   <main class="relative min-h-dvh overflow-x-hidden bg-linear-to-b from-rose-100 via-pink-50 to-amber-50 text-slate-700">
-    <audio v-if="birthday.music" ref="audio" :src="birthday.music" autoplay loop />
+    <audio v-if="birthday.music" ref="audio" :src="birthday.music" autoplay loop preload="auto" />
     <RotateDevice />
 
     <FallingPetals v-if="stage !== 'envelope'" />

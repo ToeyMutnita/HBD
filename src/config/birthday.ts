@@ -50,7 +50,7 @@ export const birthday: BirthdayConfig = {
   from: 'muthita',
   photos: [
     { src: asset('images/1.jpg'), caption: "น้องดีโด้" },
-    { src: asset('images/2.jpg'), caption: '❤️' },
+    { src: asset('images/cilp2.mp4'), caption: '❤️' },
   ],
   music: asset('music/BILLKIN-FromNowOn.mp3'),
   decorations: {
